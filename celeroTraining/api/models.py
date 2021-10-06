@@ -7,9 +7,9 @@ from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
     mobile_no = models.CharField(max_length=12, null=True, blank=True)
-    requests = models.ManyToManyField('self', through='FriendshipRequest', symmetrical=False, related_name="user's_friend_reuqests+")
-    blocked = models.ManyToManyField('self', through='Block', symmetrical=False, related_name="blocked+")
-    friendships = models.ManyToManyField('self', through='Friendship', symmetrical=False, related_name="friendships+")
+    requests = models.ManyToManyField('self', through='FriendshipRequest')
+    blocked = models.ManyToManyField('self', through='Block')
+    friendships = models.ManyToManyField('self', through='Friendship')
 
     @property
     def full_name(self):
@@ -71,7 +71,7 @@ class Block(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="block_from_user")
     friend = models.ForeignKey(User, on_delete=models.CASCADE, related_name="block_to_user")
-    status = models.CharField(max_length=20, choices=BlockStatusType.choices, default=BlockStatusType.ACTIVE, verbose_name="block status")
+    status = models.CharField(max_length=20, choices=BlockStatusType.choices, default=BlockStatusType.ACTIVE)
     created_date = models.DateTimeField(auto_now_add=True, verbose_name="first created date", editable=False)
 
     def save(self, *args, **kwargs):

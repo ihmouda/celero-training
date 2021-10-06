@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializers import UserSerializer, FriendshipSerializer, FriendshipRequestSerializer, BlockSerializer
+from .serializers import UserSerializer, FriendshipSerializer, FriendshipRequestSerializer, BlockSerializer, UserBlockedSerializer, UserFrienshipSerializer
 from rest_framework.response import Response
 from .models import User, Friendship, FriendshipRequest, Block
 
@@ -19,8 +19,8 @@ class UpdateBlock(generics.UpdateAPIView):
 
 class UserFriends(generics.RetrieveAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserFrienshipSerializer
 
 class UserBlocked(generics.RetrieveAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserBlockedSerializer

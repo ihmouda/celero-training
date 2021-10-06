@@ -3,34 +3,52 @@ from .models import User, Friendship, FriendshipRequest, Block
 from django.contrib import auth
 
 
-class FakeUserSerializer(serializers.ModelSerializer):
+class AbstractUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'mobile_no']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'mobile_no']
 
 class BlockSerializer(serializers.ModelSerializer):
 
-    # block_from_user = FakeUserSerializer()
-    # block_to_user = FakeUserSerializer()
+    friend = AbstractUserSerializer()
 
     class Meta:
         model = Block
-        fields = ['id', 'status', 'created_date']
+        fields = ['id', 'status', 'created_date', 'friend']
 
 class FriendshipSerializer(serializers.ModelSerializer):
 
+    friend = AbstractUserSerializer()
+
     class Meta:
         model = Friendship
-        fields = ['id', 'status_date']
+        fields = ['id', 'status_date', 'friend']
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(AbstractUserSerializer):
 
-    friendships = FriendshipSerializer(many=True, read_only=True)
-    blocked = BlockSerializer(many=True, read_only=True)
+    friendships = FriendshipSerializer(source='from_user', many=True, read_only=True)
+    blocked = BlockSerializer(source='block_from_user', many=True, read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'mobile_no', 'blocked']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'mobile_no', 'blocked', 'friendships']
+
+class UserBlockedSerializer(UserSerializer):
+
+    blocked = BlockSerializer(source='block_from_user', many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['blocked']
+
+class UserFrienshipSerializer(UserSerializer):
+
+    friends = FriendshipSerializer(source='from_user', many=True, read_only=True)
+    friends2 = FriendshipSerializer(source='to_user', many=True, read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['friends', 'friends2']
 
 class FriendshipRequestSerializer(serializers.ModelSerializer):
     class Meta:
