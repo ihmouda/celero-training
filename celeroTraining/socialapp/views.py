@@ -1,28 +1,31 @@
-from rest_framework import generics, viewsets
-from .serializers import FriendshipRequestSerializer, BlockSerializer, UserBlockedSerializer, UserFriendshipSerializer
-from .models import FriendshipRequest, Block, Friendship
+from rest_framework import generics, viewsets, status
+from .serializers import FriendshipRequestSerializer, UserBlockedFriendshipSerializer, UserFriendshipSerializer, FriendshipSerializer
+from .models import FriendshipRequest, Friendship
+from django.db.models import Q
 
 class FriendshipRequestViewSet(viewsets.ModelViewSet):
 
     queryset = FriendshipRequest.objects.all()
     serializer_class = FriendshipRequestSerializer
 
-class BlockViewSet(viewsets.ModelViewSet):
+class FriendshipViewSet(viewsets.ModelViewSet):
 
-    queryset = Block.objects.all()
-    serializer_class = BlockSerializer
+    queryset = Friendship.objects.all()
+    serializer_class = FriendshipSerializer
 
 class UserFriendshipViewSet(viewsets.ReadOnlyModelViewSet):
+
+    queryset = Friendship.objects.all()
     serializer_class = UserFriendshipSerializer
 
     def get_queryset(self):
-        firstlist = Friendship.objects.filter(user_id=self.kwargs["pk"])
-        secondlist = Friendship.objects.filter(friend_id=self.kwargs["pk"])
-
-        return firstlist | secondlist
+        friendships = self.queryset.filter((Q(user_id=self.kwargs["pk"]) | Q(friend_id=self.kwargs["pk"])) & Q(status=Friendship.FriendshipStatusType.ACCEPTED))
+        return friendships
 
 class UserBlockViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = UserBlockedSerializer
+
+    queryset = Friendship.objects.all()
+    serializer_class = UserBlockedFriendshipSerializer
 
     def get_queryset(self):
-        return Block.objects.filter(user_id=self.kwargs["pk"])
+        return self.queryset.filter(Q(user_id=self.kwargs["pk"]) & Q(status=Friendship.FriendshipStatusType.BLOCKED))
